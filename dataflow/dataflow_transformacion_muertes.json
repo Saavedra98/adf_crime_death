@@ -1,0 +1,149 @@
+{
+	"name": "dataflow_transformacion_muertes",
+	"properties": {
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"dataset": {
+						"referenceName": "ds_muertesDataFlow",
+						"type": "DatasetReference"
+					},
+					"name": "sourceMuertes"
+				},
+				{
+					"dataset": {
+						"referenceName": "ds_dimension",
+						"type": "DatasetReference"
+					},
+					"name": "sourceDimension"
+				}
+			],
+			"sinks": [
+				{
+					"dataset": {
+						"referenceName": "ds_output_muerte",
+						"type": "DatasetReference"
+					},
+					"name": "sinkMuerte"
+				},
+				{
+					"dataset": {
+						"referenceName": "ds_output_muerte",
+						"type": "DatasetReference"
+					},
+					"name": "sink1"
+				}
+			],
+			"transformations": [
+				{
+					"name": "filterContinente"
+				},
+				{
+					"name": "selectioneuropemuertes"
+				},
+				{
+					"name": "muertesPivot"
+				},
+				{
+					"name": "split1"
+				},
+				{
+					"name": "derivedColumnFechas"
+				},
+				{
+					"name": "muertesfechaenriquecido"
+				},
+				{
+					"name": "sortedgeorgiacases"
+				},
+				{
+					"name": "derivedYear2016"
+				},
+				{
+					"name": "filteYear2016"
+				}
+			],
+			"scriptLines": [
+				"source(output(",
+				"          country as string,",
+				"          country_code as string,",
+				"          continent as string,",
+				"          population as string,",
+				"          indicator as string,",
+				"          daily_count as integer,",
+				"          date as string,",
+				"          rate_14_day as string,",
+				"          source as string",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     inferDriftedColumnTypes: true,",
+				"     ignoreNoFilesFound: false) ~> sourceMuertes",
+				"source(output(",
+				"          fecha_id as string,",
+				"          fecha as string,",
+				"          year as string,",
+				"          mes as string,",
+				"          dia as string,",
+				"          year_mes as string,",
+				"          year_semana as string",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     ignoreNoFilesFound: false) ~> sourceDimension",
+				"sourceMuertes filter(continent == 'Europe') ~> filterContinente",
+				"filterContinente select(mapColumn(",
+				"          country,",
+				"          country_code,",
+				"          population,",
+				"          indicator,",
+				"          daily_count,",
+				"          date,",
+				"          source",
+				"     ),",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> selectioneuropemuertes",
+				"selectioneuropemuertes pivot(groupBy(country,",
+				"          country_code,",
+				"          population,",
+				"          daily_count,",
+				"          date,",
+				"          source),",
+				"     pivotBy(indicator, ['confirmed cases', 'deaths']),",
+				"     count = sum(daily_count),",
+				"     columnNaming: '$V$N',",
+				"     lateral: true) ~> muertesPivot",
+				"muertesPivot split(country == 'Georgia' || country_code == 'GEO',",
+				"     disjoint: false) ~> split1@(Georgiacountry, restcountries)",
+				"sourceDimension derive(yearmesdia = year + '-' + '0'+ mes + '-' + dia) ~> derivedColumnFechas",
+				"split1@restcountries, derivedColumnFechas join(date == yearmesdia,",
+				"     joinType:'left',",
+				"     matchType:'exact',",
+				"     ignoreSpaces: false,",
+				"     broadcast: 'auto')~> muertesfechaenriquecido",
+				"split1@Georgiacountry sort(desc({confirmed casescount}, false)) ~> sortedgeorgiacases",
+				"sourceMuertes derive(YearDate = toInteger(left(date, 4))) ~> derivedYear2016",
+				"derivedYear2016 filter(YearDate == 2016) ~> filteYear2016",
+				"sortedgeorgiacases sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     partitionFileNames:['muerteeuropa_georgia_clean.csv'],",
+				"     umask: 0022,",
+				"     preCommands: [],",
+				"     postCommands: [],",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true,",
+				"     partitionBy('hash', 1)) ~> sinkMuerte",
+				"muertesfechaenriquecido sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     partitionFileNames:['rest_europe.csv'],",
+				"     umask: 0022,",
+				"     preCommands: [],",
+				"     postCommands: [],",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true,",
+				"     partitionBy('hash', 1)) ~> sink1"
+			]
+		}
+	}
+}

@@ -1,0 +1,84 @@
+{
+	"name": "dataflow_crimen",
+	"properties": {
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"dataset": {
+						"referenceName": "ds_crimenchicago_input",
+						"type": "DatasetReference"
+					},
+					"name": "srcCrimen"
+				}
+			],
+			"sinks": [
+				{
+					"dataset": {
+						"referenceName": "ds_crimenchicago_output",
+						"type": "DatasetReference"
+					},
+					"name": "sinkCrimen"
+				}
+			],
+			"transformations": [
+				{
+					"name": "derivedColumn1"
+				},
+				{
+					"name": "dayofweek"
+				}
+			],
+			"scriptLines": [
+				"source(output(",
+				"          id as string,",
+				"          case_number as string,",
+				"          date as string,",
+				"          block as string,",
+				"          iucr as string,",
+				"          primary_type as string,",
+				"          description as string,",
+				"          location_description as string,",
+				"          arrest as string,",
+				"          domestic as string,",
+				"          beat as string,",
+				"          district as string,",
+				"          ward as string,",
+				"          community_area as string,",
+				"          fbi_code as string,",
+				"          x_coordinate as string,",
+				"          y_coordinate as string,",
+				"          year as string,",
+				"          updated_on as string,",
+				"          latitude as string,",
+				"          longitude as string,",
+				"          {:@computed_region_awaf_s7ux} as string,",
+				"          {:@computed_region_6mkv_f3dw} as string,",
+				"          {:@computed_region_vrxf_vc4k} as string,",
+				"          {:@computed_region_bdys_3d7i} as string,",
+				"          {:@computed_region_43wa_7qmu} as string,",
+				"          {:@computed_region_rpca_8um6} as string,",
+				"          {:@computed_region_d9mm_jgwp} as string,",
+				"          {:@computed_region_d3ds_rm58} as string,",
+				"          {:@computed_region_8hcu_yrd4} as string",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     ignoreNoFilesFound: false) ~> srcCrimen",
+				"srcCrimen derive(date = left(date, 10)) ~> derivedColumn1",
+				"derivedColumn1 aggregate(groupBy(dayofweekcount = dayOfWeek(toDate(date,'yyyy-mm-dd'))),",
+				"     iucr = count(iucr)) ~> dayofweek",
+				"dayofweek sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     input(",
+				"          {1959} as string,",
+				"          {41} as string",
+				"     ),",
+				"     partitionFileNames:['crimenchicago_week.csv'],",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true,",
+				"     partitionBy('hash', 1)) ~> sinkCrimen"
+			]
+		}
+	}
+}

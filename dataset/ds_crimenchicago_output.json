@@ -1,0 +1,32 @@
+{
+	"name": "ds_crimenchicago_output",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "ls_bs_cursor",
+			"type": "LinkedServiceReference"
+		},
+		"annotations": [],
+		"type": "DelimitedText",
+		"typeProperties": {
+			"location": {
+				"type": "AzureBlobStorageLocation",
+				"container": "output"
+			},
+			"columnDelimiter": ",",
+			"escapeChar": "\\",
+			"firstRowAsHeader": true,
+			"quoteChar": "\""
+		},
+		"schema": [
+			{
+				"name": "1959",
+				"type": "String"
+			},
+			{
+				"name": "41",
+				"type": "String"
+			}
+		]
+	},
+	"type": "Microsoft.DataFactory/factories/datasets"
+}

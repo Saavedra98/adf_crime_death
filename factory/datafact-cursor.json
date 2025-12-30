@@ -1,0 +1,9 @@
+{
+	"name": "datafact-cursor",
+	"location": "westus2",
+	"identity": {
+		"type": "SystemAssigned",
+		"principalId": "92e341cb-a1e4-4cf6-96cc-b6de69fa26c7",
+		"tenantId": "631804a1-f1c6-497a-9343-8def6e224b1d"
+	}
+}

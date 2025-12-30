@@ -1,0 +1,23 @@
+{
+	"name": "ds_config_list",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "ls_dls_muerte",
+			"type": "LinkedServiceReference"
+		},
+		"folder": {
+			"name": "Http"
+		},
+		"annotations": [],
+		"type": "Json",
+		"typeProperties": {
+			"location": {
+				"type": "AzureBlobFSLocation",
+				"fileName": "file_list.json",
+				"fileSystem": "config"
+			}
+		},
+		"schema": {}
+	},
+	"type": "Microsoft.DataFactory/factories/datasets"
+}
